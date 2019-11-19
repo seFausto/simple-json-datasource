@@ -36,6 +36,7 @@ var GenericDatasource = exports.GenericDatasource = function () {
     key: 'query',
     value: function query(options) {
       var query = this.buildQueryParameters(options);
+
       query.targets = query.targets.filter(function (t) {
         return !t.hide;
       });
@@ -54,6 +55,13 @@ var GenericDatasource = exports.GenericDatasource = function () {
         url: this.url + '/query',
         data: query,
         method: 'POST'
+      }).then(function (response) {
+        if (response.status === 200) {
+          for (var index = 0; index < response.data.length; index++) {
+            if (query.targets[index]["alias"]) response.data[index]["target"] = query.targets[index]["alias"];
+          }
+        }
+        return response;
       });
     }
   }, {
@@ -140,7 +148,8 @@ var GenericDatasource = exports.GenericDatasource = function () {
           target: _this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
           refId: target.refId,
           hide: target.hide,
-          type: target.type || 'timeserie'
+          type: target.type || 'timeserie',
+          alias: target.alias
         };
       });
 

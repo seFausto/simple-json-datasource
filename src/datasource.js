@@ -10,7 +10,7 @@ export class GenericDatasource {
     this.backendSrv = backendSrv;
     this.templateSrv = templateSrv;
     this.withCredentials = instanceSettings.withCredentials;
-    this.headers = {'Content-Type': 'application/json'};
+    this.headers = { 'Content-Type': 'application/json' };
     if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
       this.headers['Authorization'] = instanceSettings.basicAuth;
     }
@@ -18,10 +18,11 @@ export class GenericDatasource {
 
   query(options) {
     var query = this.buildQueryParameters(options);
+
     query.targets = query.targets.filter(t => !t.hide);
 
     if (query.targets.length <= 0) {
-      return this.q.when({data: []});
+      return this.q.when({ data: [] });
     }
 
     if (this.templateSrv.getAdhocFilters) {
@@ -34,6 +35,14 @@ export class GenericDatasource {
       url: this.url + '/query',
       data: query,
       method: 'POST'
+    }).then(response => {
+      if (response.status === 200) {
+        for (let index = 0; index < response.data.length; index++) {
+          if (query.targets[index]["alias"])
+          response.data[index]["target"]= query.targets[index]["alias"];
+        }
+      }
+      return response;
     });
   }
 
@@ -73,7 +82,7 @@ export class GenericDatasource {
 
   metricFindQuery(query) {
     var interpolated = {
-        target: this.templateSrv.replace(query, null, 'regex')
+      target: this.templateSrv.replace(query, null, 'regex')
     };
 
     return this.doRequest({
@@ -88,7 +97,7 @@ export class GenericDatasource {
       if (d && d.text && d.value) {
         return { text: d.text, value: d.value };
       } else if (_.isObject(d)) {
-        return { text: d, value: i};
+        return { text: d, value: i };
       }
       return { text: d, value: d };
     });
@@ -112,7 +121,8 @@ export class GenericDatasource {
         target: this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
         refId: target.refId,
         hide: target.hide,
-        type: target.type || 'timeserie'
+        type: target.type || 'timeserie',
+        alias: target.alias
       };
     });
 
